@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { Map, TileLayer, Popup, Marker } from "react-leaflet";
 import styled from "styled-components";
 import { useTable } from "react-table";
+import Web3 from "web3";
 import geo from "./Truffle/build/contracts/GeometryCollection.json";
 const Styles = styled.div`
   padding: 1rem;
@@ -95,6 +96,16 @@ class MapExample extends Component {
       currentPos: null
     };
     this.handleClick = this.handleClick.bind(this);
+  }
+
+  async componentWillMount() {
+    // Detect Metamask
+    const metamaskInstalled = typeof window.web3 !== "undefined";
+    this.setState({ metamaskInstalled });
+    if (metamaskInstalled) {
+      await this.loadWeb3();
+      await this.loadBlockchainData();
+    }
   }
 
   handleClick(e) {
