@@ -3,7 +3,9 @@ import { Map, TileLayer, Popup, Marker } from "react-leaflet";
 import styled from "styled-components";
 import { useTable } from "react-table";
 import Web3 from "web3";
-import geo from "./Truffle/build/contracts/GeometryCollection.json";
+import GeometryCollection from "./Truffle/build/contracts/GeometryCollection.json";
+import { geoToH3 } from "h3-js";
+
 const Styles = styled.div`
   padding: 1rem;
 
@@ -86,16 +88,11 @@ class MapExample extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      events: [
-        {
-          id: "0",
-          geohash: "akram",
-          owner: "0xE4D88C03E61f8Cf2b6aBC1Ae907C5c7C82428472"
-        }
-      ],
+      events: [],
       currentPos: null
     };
     this.handleClick = this.handleClick.bind(this);
+    this.setPoint = this.setPoint.bind(this);
   }
 
   async componentWillMount() {
@@ -104,8 +101,71 @@ class MapExample extends Component {
     this.setState({ metamaskInstalled });
     if (metamaskInstalled) {
       await this.loadWeb3();
-      await this.loadBlockchainData();
+      await this.loadBlockData();
     }
+  }
+
+  async loadWeb3() {
+    if (window.ethereum) {
+      window.web3 = new Web3(window.ethereum);
+      await window.ethereum.enable();
+    } else if (window.web3) {
+      window.web3 = new Web3(window.web3.currentProvider);
+    } else {
+      // DO NOTHING...
+    }
+  }
+
+  async loadBlockData() {
+    const web3 = window.web3;
+    const accounts = await web3.eth.getAccounts();
+    this.setState({ account: accounts[0] });
+    const geo = new web3.eth.Contract(
+      GeometryCollection.abi,
+      GeometryCollection.networks[5777].address
+    );
+    this.setState({ geo });
+    const pointNumber = await geo.methods.nbrPoint().call();
+    this.setState({ pointNumber });
+    this.setState({
+      loading: false
+    });
+    geo.events.point(
+      {
+        fromBlock: 0,
+        toBlock: "latest"
+      },
+      (error, result) => {
+        let ob = {
+          id: result.returnValues.id,
+          geohash: result.returnValues.geohash,
+          owner: result.returnValues.owner
+        };
+        this.setState(
+          {
+            events: [...this.state.events, ob]
+          },
+          () => {
+            this.forceUpdate();
+          }
+        );
+      }
+    );
+  }
+
+  async setPoint() {
+    await this.state.geo.methods
+      .setPoint(
+        geoToH3(this.state.currentPos.lat, this.state.currentPos.lng, 10)
+      )
+      .send({ from: this.state.account })
+      .once("receipt", async receipt => {
+        const pointNumber = await this.state.geo.methods.nbrPoint().call();
+        this.setState({
+          pointNumber
+        });
+        this.setState({ loading: false });
+      });
   }
 
   handleClick(e) {
@@ -140,7 +200,7 @@ class MapExample extends Component {
               <Popup position={this.state.currentPos}>
                 Location:{" "}
                 <pre>{JSON.stringify(this.state.currentPos, null, 2)}</pre>
-                <button>ADD</button>
+                <button onClick={this.setPoint}>ADD</button>
               </Popup>
             </MyMarker>
           )}
