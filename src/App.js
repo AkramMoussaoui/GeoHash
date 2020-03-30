@@ -122,7 +122,7 @@ class MapExample extends Component {
     this.setState({ account: accounts[0] });
     const geo = new web3.eth.Contract(
       GeometryCollection.abi,
-      GeometryCollection.networks[5777].address
+      "0xAC4AB72676D8861584DfBa02033F7586cB6edd5E"
     );
     this.setState({ geo });
     const pointNumber = await geo.methods.nbrPoint().call();
