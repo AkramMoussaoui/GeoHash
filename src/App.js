@@ -5,7 +5,7 @@ import { useTable } from "react-table";
 import Web3 from "web3";
 import GeometryCollection from "./Truffle/build/contracts/GeometryCollection.json";
 import { geoToH3 } from "h3-js";
-
+import MetamaskAlert from "./MetamaskAlert";
 const Styles = styled.div`
   padding: 1rem;
 
@@ -187,7 +187,8 @@ class MapExample extends Component {
         accessor: "owner"
       }
     ];
-    return (
+    let content;
+    content = (
       <div>
         <Map
           center={this.props.center}
@@ -209,6 +210,9 @@ class MapExample extends Component {
           <Table columns={columns} data={this.state.events} />
         </Styles>
       </div>
+    );
+    return (
+      <main>{this.state.metamaskInstalled ? content : <MetamaskAlert />}</main>
     );
   }
 }
