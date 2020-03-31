@@ -10,7 +10,7 @@
 
 ## About
 
-This project is about saving geohashes of geographique points into a blockchain.
+This project is about saving geohashes (using H3) of geographique points into a blockchain.
 
 The class diagram was made following the OGC (Open Geospatial Consortium) standard.
 
