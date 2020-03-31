@@ -6,6 +6,9 @@ import Web3 from "web3";
 import GeometryCollection from "./Truffle/build/contracts/GeometryCollection.json";
 import { geoToH3 } from "h3-js";
 import MetamaskAlert from "./MetamaskAlert";
+
+const address = "0xAC4AB72676D8861584DfBa02033F7586cB6edd5E";
+
 const Styles = styled.div`
   padding: 1rem;
 
@@ -120,10 +123,7 @@ class MapExample extends Component {
     const web3 = window.web3;
     const accounts = await web3.eth.getAccounts();
     this.setState({ account: accounts[0] });
-    const geo = new web3.eth.Contract(
-      GeometryCollection.abi,
-      "0xAC4AB72676D8861584DfBa02033F7586cB6edd5E"
-    );
+    const geo = new web3.eth.Contract(GeometryCollection.abi, address);
     this.setState({ geo });
     const pointNumber = await geo.methods.nbrPoint().call();
     this.setState({ pointNumber });
